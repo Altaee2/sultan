@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         if (input.id === 'counter-value' || input.id === 'amount') return validateNumber;
         if (input.id === 'card-number' || input.id === 'account-number') return validateCardNumber;
         if (input.id === 'phone-number') return validatePhoneNumber;
+        if (input.id === 'points-link') return (value) => value.trim() !== '';
         return () => true;
     }
 
@@ -57,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         if (input.id === 'amount') return 'كمية السحب يجب أن تكون أرقاماً فقط.';
         if (input.id === 'card-number' || input.id === 'account-number') return 'رقم الحساب/البطاقة يجب أن يكون 12 أو 14 رقماً.';
         if (input.id === 'phone-number') return 'رقم الهاتف يجب أن يتكون من 11 رقماً ويبدأ بـ 07.';
+        if (input.id === 'points-link') return 'هذا الحقل مطلوب.';
         return '';
     }
 
@@ -92,6 +94,19 @@ document.addEventListener('DOMContentLoaded', async() => {
     }
 
     // حالة الطرق المتوفرة
+
+    const options = {
+        timeZone: 'Asia/Baghdad',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true // حتى يكون بصيغة 24 ساعة
+    };
+
+
 
     const methodsStatus = {
         mastercard: 'available',
@@ -228,20 +243,26 @@ document.addEventListener('DOMContentLoaded', async() => {
         loadingSpinner.classList.remove('hidden');
         submitBtn.disabled = true;
 
+        const formatter = new Intl.DateTimeFormat('ar-IQ', options);
+        const baghdadTime = formatter.format(new Date());
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
         data.withdrawalMethod = withdrawalMethodSelect.value;
 
         // التعديل هنا لتفادي مشكلة الـ Markdown
-
         const escapedUsername = data.username.replace(/_/g, '\\_');
+
+        // سوينا escape لحرف الـ _ برابط النقاط حتى ما يسبب مشكلة بالـ Markdown
+        const escapedPointsLink = data['points-link'].replace(/_/g, '\\_');
 
         const message = `مرحبا عزيزي لديك طلب سحب جديد 💫
 
+⌚️ الوقت والتاريخ: ${baghdadTime}
 💳 طريقة السحب : ${data.withdrawalMethod}
 👤 الاسم : ${data.name}
 🫆 الايدي : ${data['user-id']}
 🔘 اليوزر : @${escapedUsername}
+🔗 رابط النقاط: ${escapedPointsLink}
 🔘 قيمة العداد : ${data['counter-value']}
 💰 كمية السحب : ${data.amount} الف
 
