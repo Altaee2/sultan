@@ -1,20 +1,22 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async() => {
     // دوال التحقق الجديدة
+
     const validateName = (value) => value.trim() !== '' && /^[\u0600-\u06FFa-zA-Z\s]+$/.test(value);
     const validateUserId = (value) => /^\d{8,10}$/.test(value);
-    const validateUsername = (value) => /^[a-zA-Z0-9]+$/.test(value);
+    const validateUsername = (value) => /^[a-zA-Z0-9_]+$/.test(value);
     const validateNumber = (value) => /^\d+$/.test(value);
     const validateCardNumber = (value) => /^\d{12}$|^\d{14}$/.test(value);
     const validatePhoneNumber = (value) => /^07\d{9}$/.test(value);
 
     // دالة التحقق من حقل معين
+
     function validateField(inputElement, validator, errorMessage) {
         const value = inputElement.value;
         const errorP = inputElement.parentElement.querySelector('.error-message');
 
         if (!errorP) {
             console.error("Error: The error message element was not found for", inputElement);
-            return true; // Return true to not block submission on this error
+            return true;
         }
 
         if (value.trim() === '') {
@@ -36,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // دوال مساعدة للحصول على المتحقق والرسالة
+
     function getValidatorForInput(input) {
         if (input.id === 'name' || input.id === 'card-name' || input.id === 'account-name') return validateName;
         if (input.id === 'user-id') return validateUserId;
@@ -43,26 +46,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (input.id === 'counter-value' || input.id === 'amount') return validateNumber;
         if (input.id === 'card-number' || input.id === 'account-number') return validateCardNumber;
         if (input.id === 'phone-number') return validatePhoneNumber;
-
         return () => true;
     }
 
     function getErrorMessageForInput(input) {
         if (input.id === 'name' || input.id === 'card-name' || input.id === 'account-name') return 'يجب أن يحتوي على حروف عربية أو إنجليزية فقط.';
         if (input.id === 'user-id') return 'الـ ID يجب أن يتكون من 8 إلى 10 أرقام فقط.';
-        const usernameRegex = /^[A-Za-z0-9_]+$/;
-        if (input.id === 'username' && !usernameRegex.test(input.value)) {
-  return 'اليوزر يجب أن يحتوي على حروف إنجليزية وأرقام أو شرطة سفلية (_).';
-}
+        if (input.id === 'username') return 'اليوزر يجب أن يحتوي على حروف إنجليزية وأرقام أو شرطة سفلية (_).';
         if (input.id === 'counter-value') return 'قيمة العداد يجب أن تكون أرقاماً فقط.';
         if (input.id === 'amount') return 'كمية السحب يجب أن تكون أرقاماً فقط.';
         if (input.id === 'card-number' || input.id === 'account-number') return 'رقم الحساب/البطاقة يجب أن يكون 12 أو 14 رقماً.';
         if (input.id === 'phone-number') return 'رقم الهاتف يجب أن يتكون من 11 رقماً ويبدأ بـ 07.';
-        
         return '';
     }
 
     // العناصر الرئيسية
+
     const withdrawalMethodSelect = document.getElementById('withdrawal-method');
     const basicFields = document.getElementById('basic-fields');
     const methodFieldsContainer = document.getElementById('method-fields');
@@ -77,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('year').textContent = new Date().getFullYear();
 
     // جلب بيانات send.json و info.json
+
     let config = {};
     let bannedUsers = [];
     try {
@@ -84,14 +84,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         config = await configResponse.json();
         const bannedResponse = await fetch('info.json');
         const bannedData = await bannedResponse.json();
-        bannedUsers = bannedData.bannedUsers;
+        bannedUsers = bannedData.bannedUsers; // هذه القائمة الآن تحتوي على كائنات
     } catch (error) {
         console.error('Failed to load configuration files:', error);
         showModal('خطأ في الإعدادات', 'حدث خطأ في تحميل ملفات إعدادات الموقع. يرجى التواصل مع الدعم.', 'error');
         return;
     }
-    
-    // هنا يمكنك تحديد حالة الطرق المتوفرة
+
+    // حالة الطرق المتوفرة
+
     const methodsStatus = {
         mastercard: 'available',
         zaincash: 'available',
@@ -99,7 +100,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         atheer: 'unavailable'
     };
 
-    // دالة لربط كل حقول الإدخال بوظيفة التحقق
     function attachValidationListeners() {
         const allInputs = document.querySelectorAll('#withdrawal-form input');
         allInputs.forEach(input => {
@@ -107,23 +107,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             input.addEventListener('input', onInputChange);
         });
     }
-    
+
     function onInputChange(event) {
         const input = event.target;
         validateField(input, getValidatorForInput(input), getErrorMessageForInput(input));
     }
-    
-    // ربط الحقول الأساسية بوظائف التحقق
+
     attachValidationListeners();
 
-    // حدث عند تغيير طريقة السحب
     withdrawalMethodSelect.addEventListener('change', () => {
         const selectedMethod = withdrawalMethodSelect.value;
         statusMessage.style.display = 'none';
         basicFields.classList.add('hidden');
         methodFieldsContainer.innerHTML = '';
         submitBtn.classList.add('hidden');
-        
+
         if (selectedMethod) {
             const status = methodsStatus[selectedMethod];
             if (status === 'unavailable') {
@@ -136,24 +134,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 statusMessage.textContent = 'هذه الطريقة متوفرة. يرجى ملء الحقول.';
                 statusMessage.style.display = 'block';
                 createMethodFields(selectedMethod);
-                // إعادة ربط كل الحقول (الأساسية والجديدة) بعد إضافة الحقول الجديدة
                 attachValidationListeners();
             }
         }
     });
 
-    // حدث عند إدخال الـ ID
+    // الجزء المعدل في السكربت لإظهار سبب الحظر
     userIdInput.addEventListener('input', () => {
         const userId = userIdInput.value.trim();
         banStatusMessage.style.display = 'none';
-        
+
         if (userId) {
-            if (bannedUsers.includes(userId)) {
-                banStatusMessage.textContent = 'حسابك محظور. لا يمكنك سحب الأرباح. يرجى التواصل مع قسم الدعم.';
+            // البحث عن المستخدم المحظور باستخدام find()
+            const bannedUser = bannedUsers.find(user => user.id === userId);
+
+            if (bannedUser) {
+                // إذا تم العثور على المستخدم، اعرض رسالة الحظر مع السبب
+                banStatusMessage.innerHTML = `حسابك محظور. لا يمكنك سحب الأرباح.<br> السبب: **${bannedUser.banReason}**`;
                 banStatusMessage.className = 'alert-message alert-danger';
                 banStatusMessage.style.display = 'block';
                 submitBtn.disabled = true;
             } else {
+                // إذا لم يتم العثور على المستخدم، اعرض رسالة طبيعية
                 banStatusMessage.textContent = 'حسابك غير محظور. يمكنك المتابعة.';
                 banStatusMessage.className = 'alert-message alert-success';
                 banStatusMessage.style.display = 'block';
@@ -207,20 +209,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function validateAllFields() {
         let isValid = true;
-        
         const allInputs = document.querySelectorAll('#withdrawal-form input[required]');
         allInputs.forEach(input => {
             if (!validateField(input, getValidatorForInput(input), getErrorMessageForInput(input))) {
                 isValid = false;
             }
         });
-        
         return isValid;
     }
 
-    withdrawalForm.addEventListener('submit', async (e) => {
+    withdrawalForm.addEventListener('submit', async(e) => {
         e.preventDefault();
-        
+
         if (!validateAllFields()) {
             return;
         }
@@ -231,20 +231,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
         data.withdrawalMethod = withdrawalMethodSelect.value;
-        
-        const message = `
-        **طلب سحب أرباح جديد**
-        
-        **طريقة السحب:** ${data.withdrawalMethod}
-        **الاسم:** ${data.name}
-        **الـ ID:** ${data['user-id']}
-        **اليوزر:** ${data.username}
-        **قيمة العداد:** ${data['counter-value']}
-        **كمية السحب:** ${data.amount}$
-        
-        **تفاصيل الحساب:**
-        ${getFormattedDetails(data)}
-        `;
+
+        // التعديل هنا لتفادي مشكلة الـ Markdown
+
+        const escapedUsername = data.username.replace(/_/g, '\\_');
+
+        const message = `مرحبا عزيزي لديك طلب سحب جديد 💫
+
+💳 طريقة السحب : ${data.withdrawalMethod}
+👤 الاسم : ${data.name}
+🫆 الايدي : ${data['user-id']}
+🔘 اليوزر : @${escapedUsername}
+🔘 قيمة العداد : ${data['counter-value']}
+💰 كمية السحب : ${data.amount} الف
+
+🪪تفاصيل السحب (للدفع):
+${getFormattedDetails(data)}
+`;
 
         const telegramApiUrl = `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`;
 
@@ -302,7 +305,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         modalTitle.textContent = title;
         modalMessage.textContent = message;
-        
+
         if (modalIcon) {
             modalIcon.classList.remove('fa-check-circle', 'fa-times-circle', 'success-icon', 'error-icon');
             if (type === 'success') {
@@ -311,6 +314,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 modalIcon.classList.add('fas', 'fa-times-circle', 'error-icon');
             }
         }
+
         successModal.classList.remove('hidden');
     }
 
