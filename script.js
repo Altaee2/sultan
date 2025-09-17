@@ -50,7 +50,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function getErrorMessageForInput(input) {
         if (input.id === 'name' || input.id === 'card-name' || input.id === 'account-name') return 'يجب أن يحتوي على حروف عربية أو إنجليزية فقط.';
         if (input.id === 'user-id') return 'الـ ID يجب أن يتكون من 8 إلى 10 أرقام فقط.';
-        if (input.id === 'username') return 'اليوزر يجب أن يحتوي على حروف إنجليزية وأرقام فقط.';
+        const usernameRegex = /^[A-Za-z0-9_]+$/;
+        if (input.id === 'username' && !usernameRegex.test(input.value)) {
+  return 'اليوزر يجب أن يحتوي على حروف إنجليزية وأرقام أو شرطة سفلية (_).';
+}
         if (input.id === 'counter-value') return 'قيمة العداد يجب أن تكون أرقاماً فقط.';
         if (input.id === 'amount') return 'كمية السحب يجب أن تكون أرقاماً فقط.';
         if (input.id === 'card-number' || input.id === 'account-number') return 'رقم الحساب/البطاقة يجب أن يكون 12 أو 14 رقماً.';
